@@ -27,6 +27,7 @@ services:
 
   celery:
     build: .
+    container_name: celery
     command: celery -A config worker --loglevel=info
     volumes:
       - .:/code
@@ -35,6 +36,16 @@ services:
       - db
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+
+  flower:
+    image: mher/flower:latest
+    ports:
+      - "5555:5555"
+    environment:
+      - FLOWER_PORT=5555
+      - CELERY_BROKER_URL=amqp://localuser:localpassword@host.docker.internal:5672
+    depends_on:
+      - rabbitmq
 
 volumes:
   db_data:
