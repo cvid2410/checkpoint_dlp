@@ -25,5 +25,16 @@ services:
       RABBITMQ_DEFAULT_USER: localuser
       RABBITMQ_DEFAULT_PASS: localpassword
 
+  celery:
+    build: .
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/code
+    depends_on:
+      - rabbitmq
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+
 volumes:
   db_data:
