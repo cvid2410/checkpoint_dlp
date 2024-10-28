@@ -1,2 +1,9 @@
-# do not track virtual environment
+# do not track 
+
+#virtual environment
 venv/
+
+# secret variables
+.env
+
+__pycache__/
