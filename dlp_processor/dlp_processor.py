@@ -105,6 +105,37 @@ async def fetch_patterns():
                 return []
 
 
+async def create_caught_message(match: str, content: str, additional_info: dict):
+    """
+    Send a POST request to create a caught message.
+    """
+    auth_token = os.getenv("WEBSERVER_API_KEY")
+    webserver_base_url = os.getenv("WEBSERVER_BASE_URL")
+    api_url = f"{webserver_base_url}/api/caught_messages/"
+
+    headers = {
+        "Authorization": f"Api-Key {auth_token}",
+        "Content-Type": "application/json",
+    }
+
+    payload = {
+        "user_id": additional_info.get("user"),
+        "channel": additional_info.get("channel"),
+        "timestamp": additional_info.get("ts"),
+        "message_content": content,
+        "pattern_matched": match,
+    }
+
+    async with aiohttp.ClientSession() as session:
+        async with session.post(api_url, headers=headers, json=payload) as response:
+            if response.status == 201:
+                print(f"Caught message created: {payload}")
+            else:
+                print(f"Failed to create caught message: {response.status}")
+                error_data = await response.text()
+                print(f"Error details: {error_data}")
+
+
 async def scan_message_task(content: str, additional_info: dict):
     patterns = await fetch_patterns()
     matches = []
@@ -112,11 +143,14 @@ async def scan_message_task(content: str, additional_info: dict):
     for pattern in patterns:
         regex = re.compile(pattern["regex_pattern"])
         if regex.search(content):
-            matches.append(pattern["name"])
+            matches.append(pattern["id"])
 
     # Handle matches
     if matches:
         print(f"Leaks found: {matches}")
+
+        for match in matches:
+            await create_caught_message(match, content, additional_info)
 
     else:
         print("No leaks found.")
