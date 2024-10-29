@@ -8,4 +8,5 @@ urlpatterns = [
         views.slack_event_webhooks_handler,
         name="slack_event_webhooks_handler",
     ),
+    path("api/patterns/", views.PatternListAPIView.as_view(), name="get_patterns"),
 ]

@@ -4,7 +4,14 @@ import os
 import pika
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from slack_sdk.signature import SignatureVerifier
+
+from dlp.models import Pattern
+
+from .serializers import PatternSerializer
 
 
 @csrf_exempt
@@ -43,9 +50,9 @@ def slack_event_webhooks_handler(request):
 
 
 def enqueue_message(message_data: dict) -> None:
-    rabbitmq_user = os.getenv("RABBITMQ_USER", "localuser")
-    rabbitmq_password = os.getenv("RABBITMQ_PASSWORD", "localpassword")
-    credentials = pika.PlainCredentials(rabbitmq_user, rabbitmq_password)
+    rabbitmq_user = os.getenv("RABBITMQ_USER")
+    rabbitmq_password = os.getenv("RABBITMQ_PASSWORD")
+    credentials = pika.PlainCredentials(str(rabbitmq_user), str(rabbitmq_password))
 
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(host="rabbitmq", credentials=credentials)
@@ -62,3 +69,12 @@ def enqueue_message(message_data: dict) -> None:
         ),
     )
     connection.close()
+
+
+class PatternListAPIView(APIView):
+    permission_classes = [AllowAny]  # Adjust permissions as needed
+
+    def get(self, request):
+        patterns = Pattern.objects.all()
+        serializer = PatternSerializer(patterns, many=True)
+        return Response(serializer.data)
