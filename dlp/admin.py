@@ -11,6 +11,6 @@ class PatternAdmin(admin.ModelAdmin):
 
 @admin.register(CaughtMessage)
 class CaughtMessageAdmin(admin.ModelAdmin):
-    list_display = ("message_content", "pattern_matched", "created_at")
+    list_display = ("message_content", "pattern_matched", "created_at", "user_id")
     search_fields = ("message_content",)
     list_filter = ("pattern_matched", "created_at")

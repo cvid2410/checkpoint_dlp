@@ -4,6 +4,7 @@ import os
 import pika
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_api_key.permissions import HasAPIKey
@@ -11,7 +12,7 @@ from slack_sdk.signature import SignatureVerifier
 
 from dlp.models import Pattern
 
-from .serializers import PatternSerializer
+from .serializers import CaughtMessageSerializer, PatternSerializer
 
 
 @csrf_exempt
@@ -83,4 +84,15 @@ class PatternListAPIView(APIView):
         """@TODO: include caching here"""
         patterns = Pattern.objects.all()
         serializer = PatternSerializer(patterns, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CaughtMessageCreateAPIView(APIView):
+    permission_classes = [HasAPIKey]
+
+    def post(self, request):
+        serializer = CaughtMessageSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

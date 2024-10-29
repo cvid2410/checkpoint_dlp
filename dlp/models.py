@@ -24,6 +24,9 @@ class Pattern(BaseModel):
 
 
 class CaughtMessage(BaseModel):
+    user_id = models.CharField(max_length=50)
+    channel = models.CharField(max_length=255)
+    timestamp = models.CharField(max_length=50)
     message_content = models.TextField()
     pattern_matched = models.ForeignKey(Pattern, on_delete=models.CASCADE)
     additional_info = models.JSONField(blank=True, null=True)
