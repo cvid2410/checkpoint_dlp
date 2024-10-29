@@ -39,9 +39,9 @@ def slack_event_webhooks_handler(request):
                     "user": event.get("user"),
                     "channel": event.get("channel"),
                     "ts": event.get("ts"),
+                    "files": event.get("files", []),
                 }
-
-                enqueue_message(event.get("text"), additional_info)
+                enqueue_message(event.get("text", ""), additional_info)
 
             return HttpResponse(status=200)
 

@@ -47,6 +47,7 @@ services:
       context: ./dlp_processor
       dockerfile: Dockerfile.dlp
     container_name: dlp_processor
+    command: python dlp_processor.py
     depends_on:
       - rabbitmq
       - db
@@ -56,6 +57,7 @@ services:
       RABBITMQ_PASSWORD: localpassword
       WEBSERVER_API_KEY: ${WEBSERVER_API_KEY}
       WEBSERVER_BASE_URL: ${WEBSERVER_BASE_URL}
+      SLACK_BOT_TOKEN: ${SLACK_BOT_TOKEN}
     restart: always
 
 volumes:

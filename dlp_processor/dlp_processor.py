@@ -5,6 +5,7 @@ import re
 
 import aio_pika
 import aiohttp
+from file_utils import extract_text_from_pdf
 
 
 class Manager:
@@ -105,7 +106,7 @@ async def fetch_patterns():
                 return []
 
 
-async def create_caught_message(match: str, content: str, additional_info: dict):
+async def create_caught_message(match: str, message_text: str, additional_info: dict):
     """
     Send a POST request to create a caught message.
     """
@@ -122,7 +123,7 @@ async def create_caught_message(match: str, content: str, additional_info: dict)
         "user_id": additional_info.get("user"),
         "channel": additional_info.get("channel"),
         "timestamp": additional_info.get("ts"),
-        "message_content": content,
+        "message_content": message_text,
         "pattern_matched": match,
     }
 
@@ -136,21 +137,65 @@ async def create_caught_message(match: str, content: str, additional_info: dict)
                 print(f"Error details: {error_data}")
 
 
-async def scan_message_task(content: str, additional_info: dict):
+async def download_file(url: str, token: str):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+            url, headers={"Authorization": f"Bearer {token}"}
+        ) as response:
+            if response.status == 200:
+                return await response.read()
+
+            else:
+                print(f"Failed to download file: {response.status}")
+                return None
+
+
+async def process_file(file_info):
+    token = os.getenv("SLACK_BOT_TOKEN")
+    url = file_info.get("url_private")
+    filetype = file_info.get("filetype")
+
+    content = await download_file(url, str(token))
+    if not content:
+        return None
+
+    if filetype == "pdf":
+        return extract_text_from_pdf(content)
+    else:
+        print(f"Unsupported file type: {filetype}")
+        return None
+
+
+async def scan_message_task(message_text: str, additional_info: dict):
     patterns = await fetch_patterns()
     matches = []
+    message_text = message_text or ""
+    print(f"Scanning message: {message_text}")
+    print(f"Additional info: {additional_info}")
 
+    # Scan the message text
     for pattern in patterns:
         regex = re.compile(pattern["regex_pattern"])
-        if regex.search(content):
+        if regex.search(message_text):
             matches.append(pattern["id"])
+
+    # Process attached files
+    files = additional_info.get("files", [])
+
+    for file_info in files:
+        file_text = await process_file(file_info)
+
+        for pattern in patterns:
+            regex = re.compile(pattern["regex_pattern"])
+            if regex.search(file_text):
+                matches.append(pattern["id"])
 
     # Handle matches
     if matches:
         print(f"Leaks found: {matches}")
 
         for match in matches:
-            await create_caught_message(match, content, additional_info)
+            await create_caught_message(match, message_text, additional_info)
 
     else:
         print("No leaks found.")
