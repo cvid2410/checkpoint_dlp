@@ -15,10 +15,4 @@ class CaughtMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CaughtMessage
-        fields = [
-            "user_id",
-            "channel",
-            "timestamp",
-            "message_content",
-            "pattern_matched",
-        ]
+        fields = "__all__"

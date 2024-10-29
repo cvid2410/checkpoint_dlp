@@ -106,7 +106,7 @@ async def fetch_patterns():
                 return []
 
 
-async def create_caught_message(match: str, message_text: str, additional_info: dict):
+async def create_caught_message(match_id: str, content: str, additional_info: dict):
     """
     Send a POST request to create a caught message.
     """
@@ -123,8 +123,19 @@ async def create_caught_message(match: str, message_text: str, additional_info: 
         "user_id": additional_info.get("user"),
         "channel": additional_info.get("channel"),
         "timestamp": additional_info.get("ts"),
-        "message_content": message_text,
-        "pattern_matched": match,
+        "pattern_matched": match_id,
+        "message_content": content,
+        "file_name": (
+            additional_info.get("file_name")
+            if additional_info.get("source_type") == "file"
+            else None
+        ),
+        "file_id": (
+            additional_info.get("file_id")
+            if additional_info.get("source_type") == "file"
+            else None
+        ),
+        "source_type": additional_info.get("source_type"),
     }
 
     async with aiohttp.ClientSession() as session:
@@ -168,7 +179,6 @@ async def process_file(file_info):
 
 async def scan_message_task(message_text: str, additional_info: dict):
     patterns = await fetch_patterns()
-    matches = []
     message_text = message_text or ""
     print(f"Scanning message: {message_text}")
     print(f"Additional info: {additional_info}")
@@ -177,28 +187,25 @@ async def scan_message_task(message_text: str, additional_info: dict):
     for pattern in patterns:
         regex = re.compile(pattern["regex_pattern"])
         if regex.search(message_text):
-            matches.append(pattern["id"])
+            additional_info["source_type"] = "message"
+            await create_caught_message(pattern["id"], message_text, additional_info)
 
     # Process attached files
     files = additional_info.get("files", [])
 
     for file_info in files:
         file_text = await process_file(file_info)
+        file_text = file_text or ""
 
         for pattern in patterns:
             regex = re.compile(pattern["regex_pattern"])
             if regex.search(file_text):
-                matches.append(pattern["id"])
 
-    # Handle matches
-    if matches:
-        print(f"Leaks found: {matches}")
+                additional_info["file_name"] = file_info.get("name")
+                additional_info["file_id"] = file_info.get("id")
+                additional_info["source_type"] = "file"
 
-        for match in matches:
-            await create_caught_message(match, message_text, additional_info)
-
-    else:
-        print("No leaks found.")
+                await create_caught_message(pattern["id"], file_text, additional_info)
 
 
 tasks = {
