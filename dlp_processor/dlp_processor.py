@@ -21,12 +21,11 @@ class Manager:
     async def _connect(self):
         """Establish a connection to RabbitMQ."""
 
-        rabbitmq_host = "127.0.0.1"
         rabbitmq_user = os.getenv("RABBITMQ_USER")
         rabbitmq_password = os.getenv("RABBITMQ_PASSWORD")
 
         self.connection = await aio_pika.connect_robust(
-            host=rabbitmq_host,
+            host="rabbitmq",
             login=str(rabbitmq_user),
             password=str(rabbitmq_password),
             loop=self.loop,
@@ -88,11 +87,9 @@ class Manager:
 
 
 async def fetch_patterns():
-    api_url = "http://0.0.0.0:8000/api/patterns/"
     auth_token = os.getenv("WEBSERVER_API_KEY")
-
-    print("HERE")
-    print(auth_token)
+    webserver_base_url = os.getenv("WEBSERVER_BASE_URL")
+    api_url = f"{webserver_base_url}/api/patterns/"
 
     headers = {
         "Authorization": f"Api-Key {auth_token}",

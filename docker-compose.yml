@@ -25,7 +25,7 @@ services:
       RABBITMQ_DEFAULT_USER: localuser
       RABBITMQ_DEFAULT_PASS: localpassword
 
-  web:
+  webserver:
     build: .
     container_name: webserver
     command: python manage.py runserver 0.0.0.0:8000
@@ -41,6 +41,22 @@ services:
       - .env
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
+
+  dlp_processor:
+    build:
+      context: ./dlp_processor
+      dockerfile: Dockerfile.dlp
+    container_name: dlp_processor
+    depends_on:
+      - rabbitmq
+      - db
+      - webserver
+    environment:
+      RABBITMQ_USER: localuser
+      RABBITMQ_PASSWORD: localpassword
+      WEBSERVER_API_KEY: ${WEBSERVER_API_KEY}
+      WEBSERVER_BASE_URL: ${WEBSERVER_BASE_URL}
+    restart: always
 
 volumes:
   db_data:
