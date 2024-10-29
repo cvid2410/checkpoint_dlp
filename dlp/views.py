@@ -8,6 +8,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_api_key.permissions import HasAPIKey
+from slack_sdk import WebClient
+from slack_sdk.errors import SlackApiError
 from slack_sdk.signature import SignatureVerifier
 
 from dlp.models import Pattern
@@ -30,7 +32,7 @@ def slack_event_webhooks_handler(request):
         if event_data.get("type") == "url_verification":
             return JsonResponse({"challenge": event_data.get("challenge")})
 
-        if event_data.get("type") == "event_callback":
+        elif event_data.get("type") == "event_callback":
             # Handle the event
             event = event_data.get("event")
             if event.get("type") == "message" and not event.get("bot_id"):
@@ -42,6 +44,14 @@ def slack_event_webhooks_handler(request):
                     "files": event.get("files", []),
                 }
                 enqueue_message(event.get("text", ""), additional_info)
+
+            elif event.get("type") == "channel_created":
+                channel_info = event.get("channel")
+                channel_id = channel_info.get("id")
+                channel_name = channel_info.get("name")
+
+                if channel_id:
+                    add_bot_to_channel(channel_id, channel_name)
 
             return HttpResponse(status=200)
 
@@ -75,6 +85,19 @@ def enqueue_message(message_text: str, additional_info: dict) -> None:
         ),
     )
     connection.close()
+
+
+def add_bot_to_channel(channel_id: str, channel_name: str) -> None:
+    slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
+    client = WebClient(token=slack_bot_token)
+
+    try:
+        client.conversations_join(channel=channel_id)
+        print(f"Joined channel {channel_name} ({channel_id})")
+    except SlackApiError as e:
+        print(
+            f"Slack API Error while joining channel {channel_name} ({channel_id}): {e.response['error']}"
+        )
 
 
 class PatternListAPIView(APIView):
