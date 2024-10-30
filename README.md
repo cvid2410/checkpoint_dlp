@@ -31,7 +31,7 @@ Ensure you have the following installed:
 1. **Clone the repository:**
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/cvid2410/checkpoint_dlp
 cd dlp-scanner
 ```
 
