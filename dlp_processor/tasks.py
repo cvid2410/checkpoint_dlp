@@ -36,14 +36,3 @@ async def scan_message_task(message_text: str, additional_info: dict) -> None:
                 additional_info["source_type"] = SourceType.FILE
 
                 await create_caught_message(pattern["id"], file_text, additional_info)
-
-
-# async def scan_file_task(file_info: dict, additional_info: dict):
-#     patterns = await fetch_patterns()
-#     content = await process_file(file_info)
-#     content = content or ""
-
-#     for pattern in patterns:
-#         regex = re.compile(pattern["regex_pattern"])
-#         if regex.search(content):
-#             await create_caught_message(pattern["id"], content, additional_info)

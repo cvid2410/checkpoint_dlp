@@ -11,8 +11,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
+import time
 from pathlib import Path
 
+import MySQLdb
 from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -99,6 +101,27 @@ DATABASES = {
         },
     }
 }
+
+# Retry logic
+MAX_RETRIES = 5
+RETRY_DELAY = 5  # seconds
+
+for attempt in range(MAX_RETRIES):
+    try:
+        conn = MySQLdb.connect(
+            host=DATABASES['default']['HOST'],
+            user=DATABASES['default']['USER'],
+            passwd=DATABASES['default']['PASSWORD'],
+            db=DATABASES['default']['NAME']
+        )
+        conn.close()
+        break
+    except MySQLdb.OperationalError:
+        if attempt < MAX_RETRIES - 1:
+            time.sleep(RETRY_DELAY)
+        else:
+            raise
+
 
 
 # Password validation
