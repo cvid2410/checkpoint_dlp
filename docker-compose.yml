@@ -45,9 +45,8 @@ services:
   dlp_processor:
     build:
       context: ./dlp_processor
-      dockerfile: Dockerfile.dlp
     container_name: dlp_processor
-    command: python dlp_processor.py
+    command: python main.py
     depends_on:
       - rabbitmq
       - db

@@ -1,12 +1,18 @@
 import json
+import logging
 import os
 
 import pika
 from slack_sdk import WebClient
 from slack_sdk.errors import SlackApiError
 
+logger = logging.getLogger(__name__)
+
 
 def enqueue_message(message_text: str, additional_info: dict) -> None:
+    """
+    Enqueues a message to RabbitMQ to be processed by the dlp_processor service
+    """
     rabbitmq_user = os.getenv("RABBITMQ_USER")
     rabbitmq_password = os.getenv("RABBITMQ_PASSWORD")
     credentials = pika.PlainCredentials(str(rabbitmq_user), str(rabbitmq_password))
@@ -35,6 +41,9 @@ def enqueue_message(message_text: str, additional_info: dict) -> None:
 
 
 def add_bot_to_channel(channel_id: str, channel_name: str) -> None:
+    """
+    Adds dlp_scanner to a given channel
+    """
     slack_bot_token = os.getenv("SLACK_BOT_TOKEN")
     client = WebClient(token=slack_bot_token)
 
@@ -42,6 +51,6 @@ def add_bot_to_channel(channel_id: str, channel_name: str) -> None:
         client.conversations_join(channel=channel_id)
         print(f"Joined channel {channel_name} ({channel_id})")
     except SlackApiError as e:
-        print(
+        logger.exception(
             f"Slack API Error while joining channel {channel_name} ({channel_id}): {e.response['error']}"
         )
