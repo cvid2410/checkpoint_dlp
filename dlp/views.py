@@ -12,7 +12,7 @@ from slack_sdk.signature import SignatureVerifier
 
 from dlp.enums import SlackEventType, SlackWebhookEventType
 from dlp.models import Pattern
-from dlp.utils import add_bot_to_channel, enqueue_message
+from dlp.utils import add_bot_to_channel, delete_slack_message, enqueue_message
 
 from .serializers import CaughtMessageSerializer, PatternSerializer
 
@@ -78,5 +78,15 @@ class CaughtMessageCreateAPIView(APIView):
         serializer = CaughtMessageSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+
+            try:
+
+                channel = serializer.validated_data.get("channel")
+                timestamp = serializer.validated_data.get("timestamp")
+
+                delete_slack_message(str(channel), str(timestamp))
+
+            except Exception as e:
+                print(e)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

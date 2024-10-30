@@ -54,3 +54,17 @@ def add_bot_to_channel(channel_id: str, channel_name: str) -> None:
         logger.exception(
             f"Slack API Error while joining channel {channel_name} ({channel_id}): {e.response['error']}"
         )
+
+
+def delete_slack_message(channel: str, ts: str) -> None:
+    """
+    Deletes a Slack message based on channel ID and timestamp.
+    """
+    slack_bot_token = os.getenv("SLACK_BOT_USER")
+    client = WebClient(token=slack_bot_token)
+
+    try:
+        client.chat_delete(channel=channel, ts=ts)
+        logger.info(f"Message deleted in channel {channel} at timestamp {ts}")
+    except SlackApiError as e:
+        logger.error(f"Slack API Error while deleting message: {e.response['error']}")

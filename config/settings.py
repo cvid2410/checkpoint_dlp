@@ -109,10 +109,10 @@ RETRY_DELAY = 5  # seconds
 for attempt in range(MAX_RETRIES):
     try:
         conn = MySQLdb.connect(
-            host=DATABASES['default']['HOST'],
-            user=DATABASES['default']['USER'],
-            passwd=DATABASES['default']['PASSWORD'],
-            db=DATABASES['default']['NAME']
+            host=DATABASES["default"]["HOST"],
+            user=DATABASES["default"]["USER"],
+            passwd=DATABASES["default"]["PASSWORD"],
+            db=DATABASES["default"]["NAME"],
         )
         conn.close()
         break
@@ -121,7 +121,6 @@ for attempt in range(MAX_RETRIES):
             time.sleep(RETRY_DELAY)
         else:
             raise
-
 
 
 # Password validation

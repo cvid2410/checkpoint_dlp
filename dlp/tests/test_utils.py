@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 from django.test import TestCase
 
-from dlp.utils import add_bot_to_channel, enqueue_message
+from dlp.utils import add_bot_to_channel, delete_slack_message, enqueue_message
 
 
 class EnqueueMessageTestCase(TestCase):
@@ -51,3 +51,20 @@ class AddBotToChannelTestCase(TestCase):
 
         # Assert
         mock_client.conversations_join.assert_called_once_with(channel=channel_id)
+
+
+class DeleteSlackMessageTestCase(TestCase):
+    @patch("dlp.utils.WebClient")
+    def test_delete_slack_message_success(self, mock_web_client):
+        # Arrange
+        mock_client = MagicMock()
+        mock_web_client.return_value = mock_client
+
+        channel_id = "C123"
+        timestamp = "1633026820.000200"
+
+        # Act
+        delete_slack_message(channel_id, timestamp)
+
+        # Assert
+        mock_client.chat_delete.assert_called_once_with(channel=channel_id, ts=timestamp)
