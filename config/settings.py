@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "f9ee-72-66-43-108.ngrok-free.app",
+    "0e39-72-66-43-108.ngrok-free.app",
     "0.0.0.0",
     "host.docker.internal",
     "localhost",

@@ -26,6 +26,7 @@ def slack_event_webhooks_handler(
     verifier = SignatureVerifier(signing_secret=str(slack_signing_secret))
 
     if not verifier.is_valid_request(request.body, dict(request.headers)):
+        print("Invalid request")
         return HttpResponse(status=403)
 
     if request.method == "POST":
