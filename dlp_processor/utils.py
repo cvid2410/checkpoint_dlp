@@ -1,6 +1,7 @@
 import io
 import logging
 import os
+from typing import Optional
 
 import aiohttp
 from enums import SourceType
@@ -9,7 +10,7 @@ from pdfminer.high_level import extract_text
 logger = logging.getLogger(__name__)
 
 
-def extract_text_from_pdf(content):
+def extract_text_from_pdf(content) -> str:
     with io.BytesIO(content) as f:
         text = extract_text(f)
     return text
@@ -82,7 +83,7 @@ async def create_caught_message(
                 logger.error(f"Error details: {error_data}")
 
 
-async def download_file(url: str, token: str):
+async def download_file(url: str, token: str) -> Optional[bytes]:
     """
     Downloads a file from a given URL using an authorization token.
     """
@@ -98,7 +99,7 @@ async def download_file(url: str, token: str):
                 return None
 
 
-async def process_file(file_info: dict):
+async def process_file(file_info: dict) -> Optional[str]:
     """
     Download the file and process it based on its type.
     """

@@ -7,7 +7,7 @@ from utils import create_caught_message, fetch_patterns, process_file
 logger = logging.getLogger(__name__)
 
 
-async def scan_message_task(message_text: str, additional_info: dict):
+async def scan_message_task(message_text: str, additional_info: dict) -> None:
     patterns = await fetch_patterns()
     message_text = message_text or ""
     print(f"Scanning message: {message_text}")
