@@ -14,6 +14,7 @@ The DLP (Data Loss Prevention) Scanner is a Python-Django based project designed
 - [Key Features](#key-features)
 - [Endpoints](#endpoints)
 - [Testing](#testing)
+- [Demo](#demo)
 
 ## Getting Started
 
